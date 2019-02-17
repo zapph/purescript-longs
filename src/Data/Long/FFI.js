@@ -21,6 +21,9 @@ exports.fromNumber = L.fromNumber;
 exports.fromString = L.fromString;
 exports.fromValue = L.fromValue;
 
+// Fields
+exports.unsigned = function (l) { return l.unsigned; };
+
 // Methods
 exports.add = function (l) { return l.add.bind(l); };
 exports.and = function (l) { return l.and.bind(l); };

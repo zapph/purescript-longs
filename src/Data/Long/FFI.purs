@@ -22,6 +22,8 @@ module Data.Long.FFI
        , fromNumber
        , fromString
        , fromValue
+       -- Fields
+       , unsigned
        -- Methods
        , add
        , and
@@ -129,6 +131,12 @@ foreign import fromString :: Fn3 String IsUnsigned Radix Long
 
 --| Converts the specified value to a Long using the appropriate from* function for its type.
 foreign import fromValue :: Fn2 Foreign IsUnsigned Long
+
+--
+-- Fields
+--
+
+foreign import unsigned :: Long -> IsUnsigned
 
 --
 -- Methods
