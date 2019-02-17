@@ -63,6 +63,8 @@ module Data.Long.FFI
        , xor
        ) where
 
+import Prelude
+
 import Data.Function.Uncurried (Fn1, Fn2, Fn3)
 import Foreign (Foreign)
 
@@ -70,8 +72,20 @@ import Foreign (Foreign)
 foreign import data Long :: Type
 
 newtype Radix = Radix Int
+derive newtype instance eqRadix :: Eq Radix
+instance showRadix :: Show Radix where
+  show (Radix v) = "(Radix " <> (show v) <> ")"
+
 newtype IsUnsigned = IsUnsigned Boolean
+derive newtype instance eqIsUnsigned :: Eq IsUnsigned
+instance showIsUnsigned :: Show IsUnsigned where
+  show (IsUnsigned v) = "(IsUnsigned " <> (show v) <> ")"
+
 newtype IsLittleEndian = IsLittleEndian Boolean
+derive newtype instance eqIsLittleEndian :: Eq IsLittleEndian
+instance showIsLittleEndian :: Show IsLittleEndian where
+  show (IsLittleEndian v) = "(IsLittleEndian " <> (show v) <> ")"
+
 
 --
 -- Constants
