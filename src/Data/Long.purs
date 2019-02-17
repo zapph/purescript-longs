@@ -3,11 +3,26 @@ module Data.Long
        , fromBits
        ) where
 
+import Prelude
+
 -- A 64 bit two's-complement integer
 import Data.Function.Uncurried (Fn2, runFn2)
 
 -- A 64 bit two's-complement integer
 foreign import data Long :: Type
+
+-- Instances
+
+instance semiringLong :: Semiring Long where
+  add = _add
+  zero = _zero
+  mul = _multiply
+  one = _one
+
+instance ringLong :: Ring Long where
+  sub = _subtract
+
+instance commutativeRingLong :: CommutativeRing Long
 
 -- Constants
 foreign import _zero :: Long
