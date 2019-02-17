@@ -155,7 +155,9 @@ foreign import compare :: Long -> Fn1 Long Long
 foreign import divide :: Long -> Fn1 Long Long
 
 --| Tests if this Long's value equals the specified's.
-foreign import equals :: Long -> Fn1 Long Long
+--| Note: The original API accepts any number like input.
+--| If provided with another Long, this does not compare signedness.
+foreign import equals :: Long -> Fn1 Long Boolean
 
 --| Gets the high 32 bits as a signed integer.
 foreign import getHighBits :: Long -> Int
