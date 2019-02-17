@@ -135,7 +135,7 @@ foreign import fromBytesLE :: Fn2 (Array Int) IsUnsigned Long
 foreign import fromBytesBE :: Fn2 (Array Int) IsUnsigned Long
 
 --| Returns a Long representing the given 32 bit integer value.
-foreign import fromInt :: Fn1 Int Long
+foreign import fromInt :: Fn2 Int IsUnsigned Long
 
 --| Returns a Long representing the given value, provided that it is a finite number. Otherwise, zero is returned.
 foreign import fromNumber :: Fn1 Number Long
