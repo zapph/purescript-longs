@@ -43,7 +43,7 @@ module Data.Long.FFI
        , isPositive
        , isZero
        , lessThan
-       , lessThanOrEqualTo
+       , lessThanOrEqual
        , modulo
        , multiply
        , negate
@@ -59,7 +59,9 @@ module Data.Long.FFI
        , toBytes
        , toInt
        , toNumber
+       , toSigned
        , toString
+       , toUnsigned
        , xor
        ) where
 
@@ -138,7 +140,7 @@ foreign import fromBytesBE :: Fn2 (Array Int) IsUnsigned Long
 foreign import fromInt :: Fn2 Int IsUnsigned Long
 
 --| Returns a Long representing the given value, provided that it is a finite number. Otherwise, zero is returned.
-foreign import fromNumber :: Fn1 Number Long
+foreign import fromNumber :: Fn2 Number IsUnsigned Long
 
 --| Returns a Long representation of the given string, written using the specified radix.
 foreign import fromString :: Fn3 String IsUnsigned Radix Long
@@ -163,7 +165,7 @@ foreign import add :: Long -> Fn1 Long Long
 foreign import and :: Long -> Fn1 Long Long
 
 --| Compares this Long's value with the specified's. Returns 0 if they are the same, 1 if the this is greater and -1 if the given one is greater.
-foreign import compare :: Long -> Fn1 Long Long
+foreign import compare :: Long -> Fn1 Long Int
 
 --| Returns this Long divided by the specified.
 foreign import divide :: Long -> Fn1 Long Long
@@ -174,25 +176,29 @@ foreign import divide :: Long -> Fn1 Long Long
 foreign import equals :: Long -> Fn1 Long Boolean
 
 --| Gets the high 32 bits as a signed integer.
-foreign import getHighBits :: Long -> Int
+--| Note: Use Internal.getNumberBitsToInt to get back Int
+foreign import getHighBits :: Long -> Number
 
 --| Gets the high 32 bits as an unsigned integer.
-foreign import getHighBitsUnsigned :: Long -> Int
+--| Note: Use Internal.getNumberBitsToInt to get back Int
+foreign import getHighBitsUnsigned :: Long -> Number
 
 --| Gets the low 32 bits as a signed integer.
-foreign import getLowBits :: Long -> Int
+--| Use Internal.getNumberBitsToInt to get back Int
+foreign import getLowBits :: Long -> Number
 
 --| Gets the low 32 bits as an unsigned integer.
-foreign import getLowBitsUnsigned :: Long -> Int
+--| Use Internal.getNumberBitsToInt to get back Int
+foreign import getLowBitsUnsigned :: Long -> Number
 
 --| Gets the number of bits needed to represent the absolute value of this Long.
 foreign import getNumBitsAbs :: Long -> Int
 
 --| Tests if this Long's value is greater than the specified's.
-foreign import greaterThan :: Long -> Fn1 Long Long
+foreign import greaterThan :: Long -> Fn1 Long Boolean
 
 --| Tests if this Long's value is greater than or equal the specified's.
-foreign import greaterThanOrEqual :: Long -> Fn1 Long Long
+foreign import greaterThanOrEqual :: Long -> Fn1 Long Boolean
 
 --| Tests if this Long's value is even.
 foreign import isEven :: Long -> Boolean
@@ -213,7 +219,7 @@ foreign import isZero :: Long -> Boolean
 foreign import lessThan :: Long -> Fn1 Long Boolean
 
 --| Tests if this Long's value is less than or equal the specified's.
-foreign import lessThanOrEqualTo :: Long -> Fn1 Long Boolean
+foreign import lessThanOrEqual :: Long -> Fn1 Long Boolean
 
 --| Returns this Long modulo the specified.
 foreign import modulo :: Long -> Fn1 Long Long
@@ -252,7 +258,7 @@ foreign import rotateRight :: Long -> Fn1 Long Long
 foreign import subtract :: Long -> Fn1 Long Long
 
 --| Converts this Long to its byte representation.
-foreign import toBytes :: Long -> Array Int
+foreign import toBytes :: Long -> IsLittleEndian -> Array Int
 
 --| Converts the Long to a 32 bit integer, assuming it is a 32 bit integer.
 foreign import toInt :: Long -> Int
@@ -260,11 +266,14 @@ foreign import toInt :: Long -> Int
 --| Converts the Long to a the nearest floating-point representation of this value (double, 53 bit mantissa).
 foreign import toNumber :: Long -> Number
 
+--| Converts this Long to signed.
+foreign import toSigned :: Long -> Long
+
 --| Converts the Long to a string written in the specified radix.
 foreign import toString :: Long -> Fn1 Radix String
 
 --| Converts this Long to unsigned.
-foreign import toUnsigned :: Long -> Fn1 Radix String
+foreign import toUnsigned :: Long -> Long
 
 --| Returns the bitwise XOR of this Long and the given one.
 foreign import xor :: Long -> Fn1 Long Long
