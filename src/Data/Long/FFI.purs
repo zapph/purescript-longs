@@ -73,6 +73,16 @@ import Foreign (Foreign)
 -- A 64 bit two's-complement integer
 foreign import data Long :: Type
 
+instance showLong :: Show Long where
+  show l = toString l (Radix 10) <> suffix
+    where
+      suffix = case unsigned l of
+        (IsUnsigned false) -> "l"
+        (IsUnsigned true) -> "ul"
+
+instance eqLong :: Eq Long where
+  eq a b = equals a b && (unsigned a == unsigned b)
+
 newtype Radix = Radix Int
 derive newtype instance eqRadix :: Eq Radix
 instance showRadix :: Show Radix where
