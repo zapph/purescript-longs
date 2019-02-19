@@ -68,6 +68,7 @@ module Data.Long.FFI
 import Prelude
 
 import Data.Function.Uncurried (Fn1, Fn2, Fn3)
+import Effect.Uncurried (EffectFn3)
 import Foreign (Foreign)
 
 -- A 64 bit two's-complement integer
@@ -153,7 +154,7 @@ foreign import fromInt :: Fn2 Int IsUnsigned Long
 foreign import fromNumber :: Fn2 Number IsUnsigned Long
 
 --| Returns a Long representation of the given string, written using the specified radix.
-foreign import fromString :: Fn3 String IsUnsigned Radix Long
+foreign import fromString :: EffectFn3 String IsUnsigned Radix Long
 
 --| Converts the specified value to a Long using the appropriate from* function for its type.
 foreign import fromValue :: Fn2 Foreign IsUnsigned Long

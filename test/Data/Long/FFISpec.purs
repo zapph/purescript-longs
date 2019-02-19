@@ -10,10 +10,13 @@ import Data.Long.FFI (IsLittleEndian(..), IsUnsigned(..), Long, Radix(..))
 import Data.Long.FFI as FFI
 import Data.Long.Internal as Internal
 import Effect.Class (liftEffect)
+import Effect.Uncurried (runEffectFn3)
+import Effect.Unsafe (unsafePerformEffect)
 import Foreign (unsafeToForeign)
 import Test.Assert (assert)
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldEqual, shouldSatisfy)
+import Test.Spec.Assertions.Aff (expectError)
 
 ffiSpec :: Spec Unit
 ffiSpec = describe "FFI" do
@@ -36,6 +39,10 @@ ffiSpec = describe "FFI" do
     (runFn2 FFI.fromBytesBE sampleS.beBytes isSignedV) `shouldEqual` sampleS.value
     (runFn2 FFI.fromInt 2 isSignedV) `shouldEqual` (fromStringS "2")
     (runFn2 FFI.fromNumber 2.0 isSignedV) `shouldEqual` (fromStringS "2")
+    (runFn2 FFI.fromNumber 2.0 isSignedV) `shouldEqual` (fromStringS "2")
+    (liftEffect $ runEffectFn3 FFI.fromString "2" isSignedV radix10)
+      >>= (_ `shouldEqual` (runFn2 FFI.fromInt 2 isSignedV))
+    expectError $ liftEffect (runEffectFn3 FFI.fromString "2-2" isSignedV radix10)
 
   it "should access fields" do
     FFI.unsigned (fromStringU "2") `shouldEqual` isUnsignedV
@@ -99,10 +106,13 @@ fromIntU :: Int -> Long
 fromIntU i = runFn2 FFI.fromInt i isUnsignedV
 
 fromStringS :: String -> Long
-fromStringS s = runFn3 FFI.fromString s isSignedV (Radix 10)
+fromStringS s = unsafePerformEffect $ runEffectFn3 FFI.fromString s isSignedV radix10
 
 fromStringU :: String -> Long
-fromStringU s = runFn3 FFI.fromString s isUnsignedV (Radix 10)
+fromStringU s = unsafePerformEffect $ runEffectFn3 FFI.fromString s isUnsignedV radix10
+
+radix10 :: Radix
+radix10 = Radix 10
 
 -- Constants
 

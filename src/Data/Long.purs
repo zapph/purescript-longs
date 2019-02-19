@@ -9,10 +9,14 @@ module Data.Long
 
 import Prelude
 
+import Data.Foldable (find)
 import Data.Function.Uncurried (runFn2, runFn3)
 import Data.Long.FFI (IsUnsigned(..))
 import Data.Long.FFI as FFI
 import Data.Maybe (Maybe(..))
+import Effect.Exception (catchException)
+import Effect.Uncurried (runEffectFn3)
+import Effect.Unsafe (unsafePerformEffect)
 import Test.QuickCheck (class Arbitrary, arbitrary)
 
 newtype Long = Long FFI.Long
@@ -43,15 +47,19 @@ fromLowHigh l h = Long $ runFn3 FFI.fromBits l h isSignedV
 fromString :: String -> Maybe Long
 fromString "-0" = Just $ Long FFI.zero -- change to prelude zero
 fromString s =
-  let l = runFn3 FFI.fromString s isSignedV radix10
-      -- converting back to string is a lousy way of doing this, but
-      -- long.js does not guard against out of bounds. should find a better
-      -- way
-      -- Relevant: https://github.com/dcodeIO/long.js/issues/42
-      s' = FFI.toString l radix10
-  in if s == s'
-     then Just $ Long l
-     else Nothing
+  -- converting back to string is a lousy way of doing this, but
+  -- long.js does not guard against out of bounds. should find a better
+  -- way
+  -- Relevant: https://github.com/dcodeIO/long.js/issues/42
+  Long <$> find (isSameWithInput) l'
+  where
+    l' =
+      unsafePerformEffect
+      $ catchException (\_ -> pure Nothing)
+      $ Just <$> runEffectFn3 FFI.fromString s isSignedV radix10
+
+    isSameWithInput l = s == FFI.toString l radix10
+
 
 -- todo just
 --| Creates an `Int` if the `Long` value is within the range of `Long`.

@@ -28,6 +28,7 @@ longSpec = describe "Long" do
     Long.fromString "asdf" `shouldSatisfy` isNothing
     Long.fromString " 234" `shouldSatisfy` isNothing
     Long.fromString "2 34" `shouldSatisfy` isNothing
+    Long.fromString "2-34" `shouldSatisfy` isNothing
 
   it "should return Nothing for out of bound strings" do
     Long.fromString "9223372036854775808" `shouldSatisfy` isNothing
