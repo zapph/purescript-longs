@@ -3,9 +3,12 @@ module Test.Main where
 import Prelude
 
 import Data.Long.FFISpec (ffiSpec)
+import Data.LongSpec (longSpec)
 import Effect (Effect)
 import Test.Spec.Reporter (consoleReporter)
 import Test.Spec.Runner (run)
 
 main :: Effect Unit
-main = run [consoleReporter] ffiSpec
+main = run [consoleReporter] do
+  ffiSpec
+  longSpec
