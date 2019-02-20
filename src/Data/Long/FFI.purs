@@ -1,6 +1,5 @@
 module Data.Long.FFI
        ( Long
-       , Radix(..)
        , IsUnsigned(..)
        , IsLittleEndian(..)
        -- Constants
@@ -68,6 +67,7 @@ module Data.Long.FFI
 import Prelude
 
 import Data.Function.Uncurried (Fn1, Fn2, Fn3)
+import Data.Int (Radix, decimal)
 import Effect.Uncurried (EffectFn3)
 import Foreign (Foreign)
 
@@ -75,7 +75,7 @@ import Foreign (Foreign)
 foreign import data Long :: Type
 
 instance showLong :: Show Long where
-  show l = toString l (Radix 10) <> suffix
+  show l = toString l decimal <> suffix
     where
       suffix = case unsigned l of
         (IsUnsigned false) -> "l"
@@ -83,11 +83,6 @@ instance showLong :: Show Long where
 
 instance eqLong :: Eq Long where
   eq a b = equals a b && (unsigned a == unsigned b)
-
-newtype Radix = Radix Int
-derive newtype instance eqRadix :: Eq Radix
-instance showRadix :: Show Radix where
-  show (Radix v) = "(Radix " <> (show v) <> ")"
 
 newtype IsUnsigned = IsUnsigned Boolean
 derive newtype instance eqIsUnsigned :: Eq IsUnsigned

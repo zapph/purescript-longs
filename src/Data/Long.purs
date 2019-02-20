@@ -11,6 +11,7 @@ import Prelude
 
 import Data.Foldable (find)
 import Data.Function.Uncurried (runFn2, runFn3)
+import Data.Int (decimal)
 import Data.Int as Int
 import Data.Long.FFI (IsUnsigned(..))
 import Data.Long.FFI as FFI
@@ -77,9 +78,9 @@ fromString s =
     l' =
       unsafePerformEffect
       $ catchException (\_ -> pure Nothing)
-      $ Just <$> runEffectFn3 FFI.fromString s isSignedV radix10
+      $ Just <$> runEffectFn3 FFI.fromString s isSignedV decimal
 
-    isSameWithInput l = s == FFI.toString l radix10
+    isSameWithInput l = s == FFI.toString l decimal
 
 
 --| Creates an `Int` if the `Long` value is within the range of `Long`.
@@ -88,7 +89,7 @@ toInt l'@(Long l) | l' >= intMinValueL && l' <= intMaxValueL = Just $ FFI.toInt 
 toInt _ = Nothing
 
 toString :: Long -> String
-toString (Long l) = FFI.toString l radix10
+toString (Long l) = FFI.toString l decimal
 
 --| Converts a `Long` to a `Number`, possibly losing precision.
 toNumber :: Long -> Number
@@ -111,6 +112,3 @@ intMaxValueL = fromInt top
 
 intMinValueL :: Long
 intMinValueL = fromInt bottom
-
-radix10 :: FFI.Radix
-radix10 = FFI.Radix 10

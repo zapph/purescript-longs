@@ -6,10 +6,11 @@ import Prelude
 
 import Data.Array as Array
 import Data.Function.Uncurried (runFn2, runFn3)
+import Data.Int (decimal)
 import Data.Long.FFI (Long)
 import Data.Long.FFI as FFI
 import Data.Long.Internal as Internal
-import Data.Long.TestUtils (i2lS, i2lU, isBigEndianV, isLittleEndianV, isSignedV, isUnsignedV, radix10, unsafeS2lS, unsafeS2lU)
+import Data.Long.TestUtils (i2lS, i2lU, isBigEndianV, isLittleEndianV, isSignedV, isUnsignedV, unsafeS2lS, unsafeS2lU)
 import Effect.Class (liftEffect)
 import Effect.Uncurried (runEffectFn3)
 import Foreign (unsafeToForeign)
@@ -40,9 +41,9 @@ ffiSpec = describe "FFI" do
     (runFn2 FFI.fromInt 2 isSignedV) `shouldEqual` (unsafeS2lS "2")
     (runFn2 FFI.fromNumber 2.0 isSignedV) `shouldEqual` (unsafeS2lS "2")
     (runFn2 FFI.fromNumber 2.0 isSignedV) `shouldEqual` (unsafeS2lS "2")
-    (liftEffect $ runEffectFn3 FFI.fromString "2" isSignedV radix10)
+    (liftEffect $ runEffectFn3 FFI.fromString "2" isSignedV decimal)
       >>= (_ `shouldEqual` (runFn2 FFI.fromInt 2 isSignedV))
-    expectError $ liftEffect (runEffectFn3 FFI.fromString "2-2" isSignedV radix10)
+    expectError $ liftEffect (runEffectFn3 FFI.fromString "2-2" isSignedV decimal)
 
   it "should access fields" do
     FFI.unsigned (i2lU 2) `shouldEqual` isUnsignedV

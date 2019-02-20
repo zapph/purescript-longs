@@ -3,7 +3,6 @@ module Data.Long.TestUtils
        , i2lU
        , unsafeS2lS
        , unsafeS2lU
-       , radix10
        , isSignedV
        , isUnsignedV
        , isBigEndianV
@@ -13,6 +12,7 @@ module Data.Long.TestUtils
 import Prelude
 
 import Data.Function.Uncurried (runFn2)
+import Data.Int (decimal)
 import Data.Long.FFI as FFI
 import Effect.Uncurried (runEffectFn3)
 import Effect.Unsafe (unsafePerformEffect)
@@ -24,13 +24,10 @@ i2lU :: Int -> FFI.Long
 i2lU i = runFn2 FFI.fromInt i isUnsignedV
 
 unsafeS2lS :: String -> FFI.Long
-unsafeS2lS s = unsafePerformEffect $ runEffectFn3 FFI.fromString s isSignedV radix10
+unsafeS2lS s = unsafePerformEffect $ runEffectFn3 FFI.fromString s isSignedV decimal
 
 unsafeS2lU :: String -> FFI.Long
-unsafeS2lU s = unsafePerformEffect $ runEffectFn3 FFI.fromString s isUnsignedV radix10
-
-radix10 :: FFI.Radix
-radix10 = FFI.Radix 10
+unsafeS2lU s = unsafePerformEffect $ runEffectFn3 FFI.fromString s isUnsignedV decimal
 
 -- Constants
 
