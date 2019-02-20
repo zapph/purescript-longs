@@ -11,6 +11,7 @@ import Prelude
 
 import Data.Foldable (find)
 import Data.Function.Uncurried (runFn2, runFn3)
+import Data.Int as Int
 import Data.Long.FFI (IsUnsigned(..))
 import Data.Long.FFI as FFI
 import Data.Maybe (Maybe(..))
@@ -32,6 +33,26 @@ instance ordLong :: Ord Long where
     0 -> EQ
     x | x > 0 -> GT
     _ -> LT
+
+instance boundedLong :: Bounded Long where
+  bottom = Long $ FFI.minValue
+  top = Long $ FFI.maxValue
+
+instance semiringLong :: Semiring Long where
+  add (Long l1) (Long l2) = Long $ FFI.add l1 l2
+  zero = Long $ FFI.zero
+  mul (Long l1) (Long l2) = Long $ FFI.multiply l1 l2
+  one = Long $ FFI.one
+
+instance ringLong :: Ring Long where
+  sub (Long l1) (Long l2) = Long $ FFI.subtract l1 l2
+
+instance commutativeRingLong :: CommutativeRing Long
+
+instance euclideanRingLong :: EuclideanRing Long where
+  degree = Int.floor <<< toNumber <<< abs
+  div (Long l1) (Long l2) = Long $ FFI.divide l1 l2
+  mod (Long l1) l2l@(Long l2) = Long $ FFI.modulo l1 l2
 
 instance arbitraryLong :: Arbitrary Long where
   arbitrary = fromLowHigh <$> arbitrary <*> arbitrary
@@ -61,15 +82,25 @@ fromString s =
     isSameWithInput l = s == FFI.toString l radix10
 
 
--- todo just
 --| Creates an `Int` if the `Long` value is within the range of `Long`.
 toInt :: Long -> Maybe Int
 toInt l'@(Long l) | l' >= intMinValueL && l' <= intMaxValueL = Just $ FFI.toInt l
 toInt _ = Nothing
 
-
 toString :: Long -> String
 toString (Long l) = FFI.toString l radix10
+
+--| Converts a `Long` to a `Number`, possibly losing precision.
+toNumber :: Long -> Number
+toNumber (Long l) = FFI.toNumber l
+
+-- utilities
+-- todo corner case of max neg value
+abs :: Long -> Long
+abs l'@(Long l) =
+  if FFI.isNegative l
+  then Long $ FFI.negate l
+  else l'
 
 -- constants
 isSignedV :: IsUnsigned
