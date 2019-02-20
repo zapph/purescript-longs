@@ -16,6 +16,7 @@ import Data.Int as Int
 import Data.Long.FFI (IsUnsigned(..))
 import Data.Long.FFI as FFI
 import Data.Maybe (Maybe(..))
+import Data.Ord (abs)
 import Effect.Exception (catchException)
 import Effect.Uncurried (runEffectFn3)
 import Effect.Unsafe (unsafePerformEffect)
@@ -94,14 +95,6 @@ toString (Long l) = FFI.toString l decimal
 --| Converts a `Long` to a `Number`, possibly losing precision.
 toNumber :: Long -> Number
 toNumber (Long l) = FFI.toNumber l
-
--- utilities
--- todo corner case of max neg value
-abs :: Long -> Long
-abs l'@(Long l) =
-  if FFI.isNegative l
-  then Long $ FFI.negate l
-  else l'
 
 -- constants
 isSignedV :: IsUnsigned
