@@ -4,9 +4,10 @@ module Data.LongSpec
 
 import Prelude
 
+import Data.Int (decimal)
 import Data.Long (Long)
 import Data.Long as Long
-import Data.Maybe (Maybe(..), fromJust, isJust, isNothing)
+import Data.Maybe (Maybe(..), fromJust, isNothing)
 import Effect.Class (liftEffect)
 import Partial.Unsafe (unsafePartial)
 import Test.QuickCheck (class Arbitrary, arbitrary)
@@ -46,28 +47,14 @@ longSpec = describe "Long" do
     Long.toInt (fromString "-2147483649") `shouldSatisfy` isNothing
 
   it "should convert to strings" $
-    quickCheck \l -> Long.fromString (Long.toString l) == Just l
-
-  it "should return Nothing for unknown strings" do
-    Long.fromString "asdf" `shouldSatisfy` isNothing
-    Long.fromString " 234" `shouldSatisfy` isNothing
-    Long.fromString "2 34" `shouldSatisfy` isNothing
-    Long.fromString "2-34" `shouldSatisfy` isNothing
-
-  it "should return Nothing for out of bound strings" do
-    Long.fromString "9223372036854775808" `shouldSatisfy` isNothing
-    Long.fromString "-9223372036854775809" `shouldSatisfy` isNothing
-
-  it "should read 0 strings" $ do
-    Long.fromString "0" `shouldSatisfy` isJust
-    Long.fromString "-0" `shouldSatisfy` isJust
+    quickCheck \l -> Long.fromString (Long.toString l) decimal == Just l
 
   it "should have an ord instance following ints within range" do
     quickCheck \i j -> (compare i j) == compare (Long.fromInt i) (Long.fromInt j)
 
 
 fromString :: String -> Long
-fromString s = unsafePartial $ fromJust $ Long.fromString s
+fromString s = unsafePartial $ fromJust $ Long.fromString s decimal
 
 prxLong :: Proxy Long
 prxLong = Proxy

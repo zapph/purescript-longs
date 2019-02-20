@@ -11,10 +11,11 @@ import Prelude
 
 import Data.Foldable (find)
 import Data.Function.Uncurried (runFn2, runFn3)
-import Data.Int (decimal)
+import Data.Int (Radix, decimal, fromString)
 import Data.Int as Int
 import Data.Long.FFI (IsUnsigned(..))
 import Data.Long.FFI as FFI
+import Data.Long.Internal as Internal
 import Data.Maybe (Maybe(..))
 import Data.Ord (abs)
 import Effect.Exception (catchException)
@@ -67,22 +68,8 @@ fromInt i = Long $ runFn2 FFI.fromInt i isSignedV
 fromLowHigh :: Int -> Int -> Long
 fromLowHigh l h = Long $ runFn3 FFI.fromBits l h isSignedV
 
-fromString :: String -> Maybe Long
-fromString "-0" = Just $ Long FFI.zero -- change to prelude zero
-fromString s =
-  -- converting back to string is a lousy way of doing this, but
-  -- long.js does not guard against out of bounds. should find a better
-  -- way
-  -- Relevant: https://github.com/dcodeIO/long.js/issues/42
-  Long <$> find (isSameWithInput) l'
-  where
-    l' =
-      unsafePerformEffect
-      $ catchException (\_ -> pure Nothing)
-      $ Just <$> runEffectFn3 FFI.fromString s isSignedV decimal
-
-    isSameWithInput l = s == FFI.toString l decimal
-
+fromString :: String -> Radix -> Maybe Long
+fromString s radix = Long <$> Internal.safeReadLong s isSignedV radix
 
 --| Creates an `Int` if the `Long` value is within the range of `Long`.
 toInt :: Long -> Maybe Int
