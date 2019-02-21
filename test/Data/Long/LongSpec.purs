@@ -47,7 +47,7 @@ longSpec = describe "Long" do
     Long.toInt (fromString "-2147483649") `shouldSatisfy` isNothing
 
   it "should convert to strings" $
-    quickCheck \l -> Long.fromString (Long.toString l) decimal == Just l
+    quickCheck \l -> Long.fromString (Long.toString l decimal) decimal == Just l
 
   it "should have an ord instance following ints within range" do
     quickCheck \i j -> (compare i j) == compare (Long.fromInt i) (Long.fromInt j)
