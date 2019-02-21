@@ -52,17 +52,23 @@ exports._safeReadLong = function(s, isUnsigned, radix) {
   while (lastNdx < base.length - 1 && base[lastNdx] === "0") { lastNdx++; }
   base = base.substring(lastNdx);
 
-  var signPrefix = isNegative ? "-" : "";
-
-  if (base === "") {
+  var retVal = null;
+  if (
     // long.js return 0 for empty string
-    throw "Invalid long string - empty";
-  } else if (isNegative && isUnsigned && base !== "0") {
+    (base !== "")
     // long.js coerces negative values to their unsigned counterparts
-    throw "Invalid long string - negative for unsigned";
-  } else if (!hasValidDigits(isNegative, isUnsigned, base, radix)) {
-    throw "Invalid long string - found invalid characters";
-  } else {
-    return Long.fromString(signPrefix + base, isUnsigned, radix);
+      && (!isNegative || !isUnsigned || base === "0")
+    // Invalid characters / overflow
+      && hasValidDigits(isNegative, isUnsigned, base, radix)
+  ) {
+    try {
+      var signPrefix = isNegative ? "-" : "";
+
+      // long.js may throw errors
+      retVal = Long.fromString(signPrefix + base, isUnsigned, radix);
+    } catch (err) {
+    }
   }
+
+  return retVal;
 };

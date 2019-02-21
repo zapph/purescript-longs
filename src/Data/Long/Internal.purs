@@ -5,19 +5,17 @@ module Data.Long.Internal
 
 import Prelude
 
+import Data.Function.Uncurried (Fn3, runFn3)
 import Data.Int (Radix)
 import Data.Long.FFI as FFI
-import Data.Maybe (Maybe(..))
-import Effect.Exception (catchException)
-import Effect.Uncurried (EffectFn3, runEffectFn3)
-import Effect.Unsafe (unsafePerformEffect)
+import Data.Maybe (Maybe)
+import Data.Nullable (Nullable)
+import Data.Nullable as Nullable
 
 foreign import numberBitsToInt :: Number -> Int
 
 safeReadLong :: String -> FFI.IsUnsigned -> Radix -> Maybe FFI.Long
 safeReadLong s isSigned radix =
-  unsafePerformEffect
-  $ catchException (\_ -> pure Nothing)
-  $ Just <$> runEffectFn3 _safeReadLong s isSigned radix
+  Nullable.toMaybe $ runFn3 _safeReadLong s isSigned radix
 
-foreign import _safeReadLong :: EffectFn3 String FFI.IsUnsigned Radix FFI.Long
+foreign import _safeReadLong :: Fn3 String FFI.IsUnsigned Radix (Nullable FFI.Long)
