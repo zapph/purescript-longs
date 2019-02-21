@@ -4,15 +4,53 @@ module Data.Long.InternalSpec
 
 import Prelude
 
-import Data.Int (Radix, binary, decimal, hexadecimal, octal)
+import Control.Monad.Gen (chooseInt)
+import Data.Int (Radix, binary, decimal, hexadecimal, octal, radix)
 import Data.Long.Internal (Long, Signed, Unsigned)
 import Data.Long.Internal as Internal
 import Data.Maybe (Maybe(..), isJust, isNothing)
+import Effect.Class (liftEffect)
+import Test.QuickCheck (class Arbitrary, arbitrary)
+import Test.QuickCheck.Laws.Data (checkCommutativeRing, checkEq, checkEuclideanRing, checkOrd, checkRing, checkSemiring)
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldEqual, shouldSatisfy)
+import Test.Spec.QuickCheck (quickCheck)
+import Type.Proxy (Proxy(..))
 
 internalSpec :: Spec Unit
-internalSpec = describe "fromString" do
+internalSpec = do
+  longSpec
+  fromStringSpec
+
+longSpec :: Spec Unit
+longSpec = describe "Long" do
+  it "should follow laws" $ liftEffect do
+    checkEq prxSignedLong
+    checkOrd prxSignedLong
+    checkSemiring prxSignedLong
+    checkRing prxSignedLong
+    checkCommutativeRing prxSignedLong
+    -- since degree is only up to int, we can only check for IntInLong
+    checkEuclideanRing prxIntInSignedLong
+
+    checkEq prxUnsignedLong
+    checkOrd prxUnsignedLong
+    checkSemiring prxUnsignedLong
+    checkRing prxUnsignedLong
+    checkCommutativeRing prxUnsignedLong
+
+  it "should convert ints" $
+    quickCheck \i -> Internal.toInt (Internal.fromInt i :: Long Signed) == Just i
+
+  it "should convert to strings" $ do
+    quickCheck \l (Radix' r) ->
+      readSigned (Internal.toString l r) r == Just l
+
+    quickCheck \l (Radix' r) ->
+      readUnsigned (Internal.toString l r) r == Just l
+
+fromStringSpec :: Spec Unit
+fromStringSpec = describe "fromString" do
   it "should leave valid strings unchanged" do
     readSigned "12345" decimal `shouldEqual` Just (i2lS 12345)
     readSigned "+12345" decimal `shouldEqual` Just (i2lS 12345)
@@ -79,3 +117,30 @@ i2lS = Internal.fromInt
 
 i2lU :: Int -> Long Signed
 i2lU = Internal.fromInt
+
+prxSignedLong :: Proxy (Long Signed)
+prxSignedLong = Proxy
+
+prxUnsignedLong :: Proxy (Long Unsigned)
+prxUnsignedLong = Proxy
+
+prxIntInSignedLong :: Proxy IntInSignedLong
+prxIntInSignedLong = Proxy
+
+-- Helper for Longs within the Int range
+newtype IntInSignedLong = IntInSignedLong (Long Signed)
+instance arbitraryIntInSignedLong :: Arbitrary IntInSignedLong where
+  arbitrary = IntInSignedLong <<< Internal.fromInt <$> arbitrary
+
+derive newtype instance eqIntInSignedLong :: Eq IntInSignedLong
+derive newtype instance semiringIntInSignedLong :: Semiring IntInSignedLong
+derive newtype instance ringIntInSignedLong :: Ring IntInSignedLong
+derive newtype instance commutativeRingIntInSignedLong :: CommutativeRing IntInSignedLong
+derive newtype instance eucledianRingIntInSignedLong :: EuclideanRing IntInSignedLong
+
+newtype Radix' = Radix' Radix
+instance arbitraryRadix' :: Arbitrary Radix' where
+  arbitrary = chooseInt 2 36 >>= \i ->
+    case radix i of
+      Just r -> pure (Radix' r)
+      Nothing -> arbitrary
