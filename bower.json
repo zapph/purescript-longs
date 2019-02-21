@@ -12,7 +12,6 @@
     "purescript-effect": "^2.0.1",
     "purescript-functions": "^4.0.0",
     "purescript-foreign": "^5.0.0",
-    "purescript-quickcheck-laws": "^4.0.0",
     "purescript-strings": "^4.0.1"
   },
   "devDependencies": {
@@ -21,6 +20,7 @@
     "purescript-debug": "^4.0.0",
     "purescript-spec": "^3.1.0",
     "purescript-quickcheck": "^5.0.0",
+    "purescript-quickcheck-laws": "^4.0.0",
     "purescript-spec-quickcheck": "^3.1.0"
   }
 }
