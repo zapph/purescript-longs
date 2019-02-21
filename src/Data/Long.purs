@@ -9,18 +9,14 @@ module Data.Long
 
 import Prelude
 
-import Data.Foldable (find)
 import Data.Function.Uncurried (runFn2, runFn3)
-import Data.Int (Radix, decimal, fromString)
+import Data.Int (Radix, decimal)
 import Data.Int as Int
 import Data.Long.FFI (IsUnsigned(..))
 import Data.Long.FFI as FFI
 import Data.Long.Internal as Internal
 import Data.Maybe (Maybe(..))
 import Data.Ord (abs)
-import Effect.Exception (catchException)
-import Effect.Uncurried (runEffectFn3)
-import Effect.Unsafe (unsafePerformEffect)
 import Test.QuickCheck (class Arbitrary, arbitrary)
 
 newtype Long = Long FFI.Long
