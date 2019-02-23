@@ -9,6 +9,7 @@ import Data.Int (Parity(..), Radix, binary, decimal, hexadecimal, octal, radix)
 import Data.Long.Internal (class SInfo, Long, SignProxy(..), Signed, Unsigned)
 import Data.Long.Internal as Internal
 import Data.Maybe (Maybe(..), isJust, isNothing)
+import Data.Ord (abs)
 import Data.Traversable (traverse_)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
@@ -42,8 +43,15 @@ longSpec = describe "Long" do
     checkRing prxUnsignedLong
     checkCommutativeRing prxUnsignedLong
 
-  it "should convert ints" $
-    quickCheck \i -> Internal.toInt (Internal.fromInt i :: Long Signed) == Just i
+  it "should convert ints" $ do
+    quickCheck \i -> Internal.toInt (Internal.signedLongFromInt i) == Just i
+    quickCheck \i' ->
+      let i = abs i'
+          l = Internal.unsignedLongFromInt (abs i)
+      in (l >>= Internal.toInt) == Just i
+
+  it "should fail to convert negative ints to unsigned longs" do
+    Internal.unsignedLongFromInt (-1) `shouldSatisfy` isNothing
 
   it "should convert to strings" $ do
     quickCheck \(Radix' r) l ->
@@ -163,10 +171,10 @@ readUnsigned :: Radix -> String -> Maybe (Long Unsigned)
 readUnsigned = Internal.fromStringAs
 
 i2lS :: Int -> Long Signed
-i2lS = Internal.fromInt
+i2lS = Internal.signedLongFromInt
 
 i2lU :: Int -> Long Signed
-i2lU = Internal.fromInt
+i2lU = Internal.unsafeFromInt
 
 prxSignedLong :: Proxy (Long Signed)
 prxSignedLong = Proxy
@@ -184,12 +192,12 @@ unsignedProxy :: SignProxy Unsigned
 unsignedProxy = SignProxy
 
 two :: forall s. (SInfo s) => Long s
-two = Internal.fromInt 2
+two = Internal.unsafeFromInt 2
 
 -- Helper for Longs within the Int range
 newtype IntInSignedLong = IntInSignedLong (Long Signed)
 instance arbitraryIntInSignedLong :: Arbitrary IntInSignedLong where
-  arbitrary = IntInSignedLong <<< Internal.fromInt <$> arbitrary
+  arbitrary = IntInSignedLong <<< Internal.signedLongFromInt <$> arbitrary
 
 derive newtype instance eqIntInSignedLong :: Eq IntInSignedLong
 derive newtype instance semiringIntInSignedLong :: Semiring IntInSignedLong

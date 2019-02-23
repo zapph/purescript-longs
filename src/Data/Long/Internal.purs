@@ -9,9 +9,13 @@ module Data.Long.Internal
        , ffiBottom
        , ffiZero
        , ffiOne
+       , bottomIntL
+       , topIntL
        , SignProxy(..)
+       , signedLongFromInt
+       , unsignedLongFromInt
+       , unsafeFromInt
        , fromLowHigh
-       , fromInt
        , fromNumber
        , fromString
        , fromStringAs
@@ -52,6 +56,9 @@ class SInfo (s :: Signedness) where
   ffiZero :: SignProxy s -> FFI.Long
   ffiOne :: SignProxy s -> FFI.Long
 
+  bottomIntL :: SignProxy s -> FFI.Long
+  topIntL :: SignProxy s -> FFI.Long
+
 instance infoSigned :: SInfo Signed where
   ffiSignedness _ = (FFI.IsUnsigned false)
   ffiTop _ = FFI.maxValue
@@ -59,12 +66,18 @@ instance infoSigned :: SInfo Signed where
   ffiZero _ = FFI.zero
   ffiOne _ = FFI.one
 
+  bottomIntL p = runFn2 FFI.fromInt bottom (FFI.IsUnsigned false)
+  topIntL p = runFn2 FFI.fromInt top (FFI.IsUnsigned false)
+
 instance infoUnsigned :: SInfo Unsigned where
   ffiSignedness _ = (FFI.IsUnsigned true)
   ffiTop _ = FFI.maxUnsignedValue
   ffiBottom _ = FFI.uzero
   ffiZero _ = FFI.uzero
   ffiOne _ = FFI.uone
+
+  bottomIntL _ = FFI.uzero
+  topIntL _ = runFn2 FFI.fromInt top (FFI.IsUnsigned true)
 
 newtype Long (s :: Signedness) = Long FFI.Long
 
@@ -105,8 +118,16 @@ instance arbitraryLong :: SInfo s => Arbitrary (Long s) where
 
 -- Constructors
 
-fromInt :: forall s. SInfo s => Int -> Long s
-fromInt i = Long $ runFn2 FFI.fromInt i (ffiSignedness (SignProxy :: SignProxy s))
+signedLongFromInt :: Int -> Long Signed
+signedLongFromInt = unsafeFromInt
+
+unsignedLongFromInt :: Int -> Maybe (Long Unsigned)
+unsignedLongFromInt i
+  | i >= 0    = Just $ unsafeFromInt i
+  | otherwise = Nothing
+
+unsafeFromInt :: forall s. SInfo s => Int -> Long s
+unsafeFromInt i = Long $ runFn2 FFI.fromInt i (ffiSignedness (SignProxy :: SignProxy s))
 
 fromLowHigh :: forall s. SInfo s => Int -> Int -> Long s
 fromLowHigh l h = Long $ runFn3 FFI.fromBits l h (ffiSignedness (SignProxy :: SignProxy s))
@@ -129,8 +150,16 @@ fromStringAs radix s =
   Long <$> safeReadLong s (ffiSignedness (SignProxy :: SignProxy s)) radix
 
 toInt :: forall s. SInfo s => Long s -> Maybe Int
-toInt l'@(Long l) | l' >= intBottomValueL && l' <= intTopValueL = Just $ FFI.toInt l
-toInt _ = Nothing
+toInt l'@(Long l) =
+  if bottomL <= l' && l' <= topL
+  then Just $ FFI.toInt l
+  else Nothing
+  where
+    p :: SignProxy s
+    p = SignProxy
+
+    bottomL = Long $ bottomIntL p
+    topL = Long $ topIntL p
 
 toString :: forall s. Long s -> String
 toString = toStringAs decimal
@@ -155,11 +184,11 @@ odd = not <<< even
 
 -- Utils
 
-intTopValueL :: forall s. SInfo s => Long s
-intTopValueL = fromInt top
+signedProxy :: SignProxy Signed
+signedProxy = SignProxy
 
-intBottomValueL :: forall s. SInfo s => Long s
-intBottomValueL = fromInt bottom
+unsignedProxy :: SignProxy Unsigned
+unsignedProxy = SignProxy
 
 longTopValueN :: forall s. SInfo s => SignProxy s -> Number
 longTopValueN _ = toNumber (top :: Long s)

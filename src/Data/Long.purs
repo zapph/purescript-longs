@@ -20,9 +20,9 @@ type Long = Internal.Long Internal.Signed
 
 --| Creates a `Long` from an `Int` value
 fromInt :: Int -> Long
-fromInt = Internal.fromInt
+fromInt = Internal.signedLongFromInt
 
---| Creates a `Long` from low and high bytes respresented as `Int`
+--| Creates a signed `Long` from low and high bytes respresented as `Int`
 fromLowHigh :: Int -> Int -> Long
 fromLowHigh = Internal.fromLowHigh
 
