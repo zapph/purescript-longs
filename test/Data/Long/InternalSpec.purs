@@ -6,10 +6,13 @@ import Prelude
 
 import Control.Monad.Gen (chooseInt)
 import Data.Int (Radix, binary, decimal, hexadecimal, octal, radix)
-import Data.Long.Internal (Long, Signed, Unsigned)
+import Data.Long.Internal (class SInfo, Long, SignProxy(..), Signed, Unsigned)
 import Data.Long.Internal as Internal
 import Data.Maybe (Maybe(..), isJust, isNothing)
+import Data.Traversable (traverse_)
+import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
+import Global as Number
 import Test.QuickCheck (class Arbitrary, arbitrary)
 import Test.QuickCheck.Laws.Data (checkCommutativeRing, checkEq, checkEuclideanRing, checkOrd, checkRing, checkSemiring)
 import Test.Spec (Spec, describe, it)
@@ -48,6 +51,48 @@ longSpec = describe "Long" do
 
     quickCheck \l (Radix' r) ->
       readUnsigned (Internal.toString l r) r == Just l
+
+  it "should convert numbers" $ do
+    traverse_ (checkNumber signedProxy)
+      [ 0.0
+      , 9223372036854775807.0
+      , (-9223372036854775808.0)
+      , 2e10
+      ]
+
+    traverse_ (checkNumber unsignedProxy)
+      [ 0.0
+      , 9223372036854775807.0
+      , (18446744073709551615.0)
+      , 2e10
+      ]
+
+  it "should reject conversion from non whole numbers" $ do
+    traverse_ (\n -> Internal.fromNumber n :: Maybe (Long Signed) `shouldSatisfy` isNothing)
+      [ 5.5
+      , 100.1
+      , 200.25
+      , 0.000001
+      -- , 999999999.00000001 -- Number is not precise enough to store the decimal part
+      , Number.nan
+      , Number.infinity
+      ]
+
+  it "should reject conversion of numbers outside the long range" $ do
+    traverse_ (\n -> Internal.fromNumber n :: Maybe (Long Signed) `shouldSatisfy` isNothing)
+      [ -10000000000000000000.0 -- Must be big enough to store precision
+      , 10000000000000000000.0
+      ]
+
+    traverse_ (\n -> Internal.fromNumber n :: Maybe (Long Unsigned) `shouldSatisfy` isNothing)
+      [ -1.0
+      , 20000000000000000000.0
+      ]
+
+
+checkNumber :: forall s. (SInfo s) => SignProxy s -> Number -> Aff Unit
+checkNumber _ n =
+  (Internal.toNumber <$> (Internal.fromNumber n :: Maybe (Long s))) `shouldEqual` Just n
 
 fromStringSpec :: Spec Unit
 fromStringSpec = describe "fromString" do
@@ -126,6 +171,13 @@ prxUnsignedLong = Proxy
 
 prxIntInSignedLong :: Proxy IntInSignedLong
 prxIntInSignedLong = Proxy
+
+signedProxy :: SignProxy Signed
+signedProxy = SignProxy
+
+unsignedProxy :: SignProxy Unsigned
+unsignedProxy = SignProxy
+
 
 -- Helper for Longs within the Int range
 newtype IntInSignedLong = IntInSignedLong (Long Signed)

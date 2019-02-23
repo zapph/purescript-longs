@@ -12,6 +12,7 @@ module Data.Long.Internal
        , SignProxy(..)
        , fromLowHigh
        , fromInt
+       , fromNumber
        , fromString
        , toInt
        , toString
@@ -105,12 +106,22 @@ fromInt i = Long $ runFn2 FFI.fromInt i (ffiSignedness (SignProxy :: SignProxy s
 fromLowHigh :: forall s. SInfo s => Int -> Int -> Long s
 fromLowHigh l h = Long $ runFn3 FFI.fromBits l h (ffiSignedness (SignProxy :: SignProxy s))
 
+fromNumber :: forall s. SInfo s => Number -> Maybe (Long s)
+fromNumber n =
+  if isValidNumber
+  then Just $ Long $ runFn2 FFI.fromNumber n (ffiSignedness p)
+  else Nothing
+
+  where
+    isValidNumber = isWholeNumber n && isNumberInLongRange p n
+    p = SignProxy :: SignProxy s
+
 fromString :: forall s. SInfo s => String -> Radix -> Maybe (Long s)
 fromString s radix =
   Long <$> safeReadLong s (ffiSignedness (SignProxy :: SignProxy s)) radix
 
 toInt :: forall s. SInfo s => Long s -> Maybe Int
-toInt l'@(Long l) | l' >= intMinValueL && l' <= intMaxValueL = Just $ FFI.toInt l
+toInt l'@(Long l) | l' >= intBottomValueL && l' <= intTopValueL = Just $ FFI.toInt l
 toInt _ = Nothing
 
 toString :: forall s. Long s -> Radix -> String
@@ -122,11 +133,20 @@ toNumber (Long l) = FFI.toNumber l
 
 -- Utils
 
-intMaxValueL :: forall s. SInfo s => Long s
-intMaxValueL = fromInt top
+intTopValueL :: forall s. SInfo s => Long s
+intTopValueL = fromInt top
 
-intMinValueL :: forall s. SInfo s => Long s
-intMinValueL = fromInt bottom
+intBottomValueL :: forall s. SInfo s => Long s
+intBottomValueL = fromInt bottom
+
+longTopValueN :: forall s. SInfo s => SignProxy s -> Number
+longTopValueN _ = toNumber (top :: Long s)
+
+longBottomValueN :: forall s. SInfo s => SignProxy s -> Number
+longBottomValueN _ = toNumber (bottom :: Long s)
+
+isNumberInLongRange :: forall s. SInfo s => SignProxy s -> Number -> Boolean
+isNumberInLongRange p n = longBottomValueN p <= n && n <= longTopValueN p
 
 foreign import numberBitsToInt :: Number -> Int
 
@@ -135,3 +155,5 @@ safeReadLong s isSigned radix =
   Nullable.toMaybe $ runFn3 _safeReadLong s isSigned radix
 
 foreign import _safeReadLong :: Fn3 String FFI.IsUnsigned Radix (Nullable FFI.Long)
+
+foreign import isWholeNumber :: Number -> Boolean

@@ -72,3 +72,7 @@ exports._safeReadLong = function(s, isUnsigned, radix) {
 
   return retVal;
 };
+
+exports.isWholeNumber = function(n) {
+  return Number.isInteger(n);
+};
