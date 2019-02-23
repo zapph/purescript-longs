@@ -7,6 +7,10 @@
     "output"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zapph/purescript-longs.git"
+  },
   "dependencies": {
     "purescript-prelude": "^4.1.0",
     "purescript-console": "^4.2.0",
