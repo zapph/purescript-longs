@@ -5,7 +5,7 @@ module Data.Long.InternalSpec
 import Prelude
 
 import Control.Monad.Gen (chooseInt)
-import Data.Int (Radix, binary, decimal, hexadecimal, octal, radix)
+import Data.Int (Parity(..), Radix, binary, decimal, hexadecimal, octal, radix)
 import Data.Long.Internal (class SInfo, Long, SignProxy(..), Signed, Unsigned)
 import Data.Long.Internal as Internal
 import Data.Maybe (Maybe(..), isJust, isNothing)
@@ -88,6 +88,11 @@ longSpec = describe "Long" do
       [ -1.0
       , 20000000000000000000.0
       ]
+
+
+  it "should determine odd/even" do
+    quickCheck \(l :: Long Signed) -> (Internal.parity l == Even) == (l `mod` two == zero)
+    quickCheck \(l :: Long Unsigned) -> (Internal.parity l == Even) == (l `mod` two == zero)
 
 
 checkNumber :: forall s. (SInfo s) => SignProxy s -> Number -> Aff Unit
@@ -177,6 +182,9 @@ signedProxy = SignProxy
 
 unsignedProxy :: SignProxy Unsigned
 unsignedProxy = SignProxy
+
+two :: forall s. (SInfo s) => Long s
+two = Internal.fromInt 2
 
 -- Helper for Longs within the Int range
 newtype IntInSignedLong = IntInSignedLong (Long Signed)

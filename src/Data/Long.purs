@@ -7,9 +7,12 @@ module Data.Long
        , toInt
        , toString
        , toStringAs
+       , parity
+       , even
+       , odd
        ) where
 
-import Data.Int (Radix)
+import Data.Int (Parity, Radix)
 import Data.Long.Internal as Internal
 import Data.Maybe (Maybe)
 
@@ -46,3 +49,15 @@ toStringAs = Internal.toStringAs
 --| Converts a `Long` to a `Number`, possibly losing precision.
 toNumber :: Long -> Number
 toNumber = Internal.toNumber
+
+--| Returns whether a `Long` is `Even` or `Odd`.
+parity :: Long -> Parity
+parity = Internal.parity
+
+--| Returns whether a `Long` is an even number.
+even :: Long -> Boolean
+even = Internal.even
+
+--| Returns whether a `Long` is an odd number.
+odd :: Long -> Boolean
+odd = Internal.odd

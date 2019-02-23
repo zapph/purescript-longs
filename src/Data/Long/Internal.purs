@@ -19,6 +19,9 @@ module Data.Long.Internal
        , toString
        , toStringAs
        , toNumber
+       , parity
+       , even
+       , odd
          -- Utils
        , numberBitsToInt
        ) where
@@ -26,7 +29,7 @@ module Data.Long.Internal
 import Prelude
 
 import Data.Function.Uncurried (Fn3, runFn2, runFn3)
-import Data.Int (Radix, decimal)
+import Data.Int (Parity(..), Radix, decimal)
 import Data.Int as Int
 import Data.Long.FFI as FFI
 import Data.Maybe (Maybe(..))
@@ -138,6 +141,17 @@ toStringAs r (Long l) = FFI.toString l r
 --| Converts a `Long` to a `Number`, possibly losing precision.
 toNumber :: forall s. Long s -> Number
 toNumber (Long l) = FFI.toNumber l
+
+--| Returns whether a `Long` is `Even` or `Odd`.
+parity :: forall s. Long s -> Parity
+parity l | even l    = Even
+          | otherwise = Odd
+
+even :: forall s. Long s -> Boolean
+even (Long l) = FFI.isEven l
+
+odd :: forall s. Long s -> Boolean
+odd = not <<< even
 
 -- Utils
 
