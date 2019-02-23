@@ -46,11 +46,11 @@ longSpec = describe "Long" do
     quickCheck \i -> Internal.toInt (Internal.fromInt i :: Long Signed) == Just i
 
   it "should convert to strings" $ do
-    quickCheck \l (Radix' r) ->
-      readSigned (Internal.toString l r) r == Just l
+    quickCheck \(Radix' r) l ->
+      readSigned r (Internal.toStringAs r l) == Just l
 
-    quickCheck \l (Radix' r) ->
-      readUnsigned (Internal.toString l r) r == Just l
+    quickCheck \(Radix' r) l ->
+      readUnsigned r (Internal.toStringAs r l) == Just l
 
   it "should convert numbers" $ do
     traverse_ (checkNumber signedProxy)
@@ -97,65 +97,65 @@ checkNumber _ n =
 fromStringSpec :: Spec Unit
 fromStringSpec = describe "fromString" do
   it "should leave valid strings unchanged" do
-    readSigned "12345" decimal `shouldEqual` Just (i2lS 12345)
-    readSigned "+12345" decimal `shouldEqual` Just (i2lS 12345)
-    readSigned "-12345" decimal `shouldEqual` Just (i2lS (-12345))
-    readSigned "-12345" decimal `shouldEqual` Just (i2lS (-12345))
+    readSigned decimal "12345" `shouldEqual` Just (i2lS 12345)
+    readSigned decimal "+12345" `shouldEqual` Just (i2lS 12345)
+    readSigned decimal "-12345" `shouldEqual` Just (i2lS (-12345))
+    readSigned decimal "-12345" `shouldEqual` Just (i2lS (-12345))
 
   it "should read signed zeros" do
-    readSigned "0" decimal `shouldEqual` Just zero
-    readSigned "-0" decimal `shouldEqual` Just zero
-    readSigned "000" decimal `shouldEqual` Just zero
-    readSigned "-00" decimal `shouldEqual` Just zero
+    readSigned decimal "0" `shouldEqual` Just zero
+    readSigned decimal "-0" `shouldEqual` Just zero
+    readSigned decimal "000" `shouldEqual` Just zero
+    readSigned decimal "-00" `shouldEqual` Just zero
 
   it "should read unsigned zeros" do
-    readUnsigned "0" decimal `shouldEqual` Just zero
-    readUnsigned "-0" decimal `shouldEqual` Just zero
-    readUnsigned "000" decimal `shouldEqual` Just zero
-    readUnsigned "-00" decimal `shouldEqual` Just zero
+    readUnsigned decimal "0" `shouldEqual` Just zero
+    readUnsigned decimal "-0" `shouldEqual` Just zero
+    readUnsigned decimal "000" `shouldEqual` Just zero
+    readUnsigned decimal "-00" `shouldEqual` Just zero
 
   it "should return Nothing on empty string" do
-    readSigned "" decimal `shouldEqual` Nothing
+    readSigned decimal "" `shouldEqual` Nothing
 
   it "should disallow negative for unsigned" do
-    readUnsigned "-123" decimal `shouldEqual` Nothing
+    readUnsigned decimal "-123" `shouldEqual` Nothing
 
   it "should disallow invalid characters depending on radix" do
-    readSigned "1010" binary `shouldSatisfy` isJust
-    readSigned "-1010" binary `shouldSatisfy` isJust
-    readSigned "1012" binary `shouldSatisfy` isNothing
+    readSigned binary "1010" `shouldSatisfy` isJust
+    readSigned binary "-1010" `shouldSatisfy` isJust
+    readSigned binary "1012" `shouldSatisfy` isNothing
 
-    readSigned "1234" octal `shouldSatisfy` isJust
-    readSigned "1834" octal `shouldSatisfy` isNothing
+    readSigned octal "1234" `shouldSatisfy` isJust
+    readSigned octal "1834" `shouldSatisfy` isNothing
 
-    readSigned "1bcd" hexadecimal `shouldSatisfy` isJust
-    readSigned "1BCd" hexadecimal `shouldSatisfy` isJust
-    readSigned "1bcz" hexadecimal `shouldSatisfy` isNothing
+    readSigned hexadecimal "1bcd" `shouldSatisfy` isJust
+    readSigned hexadecimal "1BCd" `shouldSatisfy` isJust
+    readSigned hexadecimal "1bcz" `shouldSatisfy` isNothing
 
   it "should read at the limits" do
-    readSigned "9223372036854775807" decimal `shouldEqual` Just top
-    readSigned "+009223372036854775807" decimal `shouldEqual` Just top
-    readSigned "-09223372036854775808" decimal `shouldEqual` Just bottom
+    readSigned decimal "9223372036854775807" `shouldEqual` Just top
+    readSigned decimal "+009223372036854775807" `shouldEqual` Just top
+    readSigned decimal "-09223372036854775808" `shouldEqual` Just bottom
 
-    readUnsigned "18446744073709551615" decimal `shouldEqual` Just top
+    readUnsigned decimal "18446744073709551615" `shouldEqual` Just top
 
-    readSigned "7fffffffffffffff" hexadecimal `shouldEqual` Just top
-    readSigned "-8000000000000000" hexadecimal `shouldEqual` Just bottom
+    readSigned hexadecimal "7fffffffffffffff" `shouldEqual` Just top
+    readSigned hexadecimal "-8000000000000000" `shouldEqual` Just bottom
 
   it "should fail for overflows" do
-    readSigned "9223372036854775808" decimal `shouldSatisfy` isNothing
-    readSigned "-9223372036854775809" decimal `shouldSatisfy` isNothing
+    readSigned decimal "9223372036854775808" `shouldSatisfy` isNothing
+    readSigned decimal "-9223372036854775809" `shouldSatisfy` isNothing
 
-    readUnsigned "18446744073709551616" decimal `shouldSatisfy` isNothing
+    readUnsigned decimal "18446744073709551616" `shouldSatisfy` isNothing
 
-    readSigned "8000000000000000" hexadecimal `shouldSatisfy` isNothing
-    readSigned "-8000000000000001" hexadecimal `shouldSatisfy` isNothing
+    readSigned hexadecimal "8000000000000000" `shouldSatisfy` isNothing
+    readSigned hexadecimal "-8000000000000001" `shouldSatisfy` isNothing
 
-readSigned :: String -> Radix -> Maybe (Long Signed)
-readSigned = Internal.fromString
+readSigned :: Radix -> String -> Maybe (Long Signed)
+readSigned = Internal.fromStringAs
 
-readUnsigned :: String -> Radix -> Maybe (Long Unsigned)
-readUnsigned = Internal.fromString
+readUnsigned :: Radix -> String -> Maybe (Long Unsigned)
+readUnsigned = Internal.fromStringAs
 
 i2lS :: Int -> Long Signed
 i2lS = Internal.fromInt
@@ -177,7 +177,6 @@ signedProxy = SignProxy
 
 unsignedProxy :: SignProxy Unsigned
 unsignedProxy = SignProxy
-
 
 -- Helper for Longs within the Int range
 newtype IntInSignedLong = IntInSignedLong (Long Signed)

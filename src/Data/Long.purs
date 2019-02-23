@@ -3,8 +3,10 @@ module Data.Long
        , fromLowHigh
        , fromInt
        , fromString
+       , fromStringAs
        , toInt
        , toString
+       , toStringAs
        ) where
 
 import Data.Int (Radix)
@@ -21,15 +23,25 @@ fromInt = Internal.fromInt
 fromLowHigh :: Int -> Int -> Long
 fromLowHigh = Internal.fromLowHigh
 
-fromString :: String -> Radix -> Maybe Long
+--| Reads an Int from a String value. The number must parse as an integer and fall within the valid range of values for the Int type, otherwise Nothing is returned.
+fromString :: String -> Maybe Long
 fromString = Internal.fromString
+
+--| Like fromString, but the integer can be specified in a different base.
+fromStringAs :: Radix -> String -> Maybe Long
+fromStringAs = Internal.fromStringAs
 
 --| Creates an `Int` if the `Long` value is within the range of `Long`.
 toInt :: Long -> Maybe Int
 toInt = Internal.toInt
 
-toString :: Long -> Radix -> String
+--| Like `show`, but omits the `l` suffix.
+toString :: Long -> String
 toString = Internal.toString
+
+--| Like `toStringAs`, but the integer can be specified in a different base.
+toStringAs :: Radix -> Long -> String
+toStringAs = Internal.toStringAs
 
 --| Converts a `Long` to a `Number`, possibly losing precision.
 toNumber :: Long -> Number

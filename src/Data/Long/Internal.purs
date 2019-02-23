@@ -14,8 +14,10 @@ module Data.Long.Internal
        , fromInt
        , fromNumber
        , fromString
+       , fromStringAs
        , toInt
        , toString
+       , toStringAs
        , toNumber
          -- Utils
        , numberBitsToInt
@@ -24,7 +26,7 @@ module Data.Long.Internal
 import Prelude
 
 import Data.Function.Uncurried (Fn3, runFn2, runFn3)
-import Data.Int (Radix)
+import Data.Int (Radix, decimal)
 import Data.Int as Int
 import Data.Long.FFI as FFI
 import Data.Maybe (Maybe(..))
@@ -116,16 +118,22 @@ fromNumber n =
     isValidNumber = isWholeNumber n && isNumberInLongRange p n
     p = SignProxy :: SignProxy s
 
-fromString :: forall s. SInfo s => String -> Radix -> Maybe (Long s)
-fromString s radix =
+fromString :: forall s. SInfo s => String -> Maybe (Long s)
+fromString = fromStringAs decimal
+
+fromStringAs :: forall s. SInfo s => Radix -> String -> Maybe (Long s)
+fromStringAs radix s =
   Long <$> safeReadLong s (ffiSignedness (SignProxy :: SignProxy s)) radix
 
 toInt :: forall s. SInfo s => Long s -> Maybe Int
 toInt l'@(Long l) | l' >= intBottomValueL && l' <= intTopValueL = Just $ FFI.toInt l
 toInt _ = Nothing
 
-toString :: forall s. Long s -> Radix -> String
-toString (Long l) = FFI.toString l
+toString :: forall s. Long s -> String
+toString = toStringAs decimal
+
+toStringAs :: forall s. Radix -> Long s -> String
+toStringAs r (Long l) = FFI.toString l r
 
 --| Converts a `Long` to a `Number`, possibly losing precision.
 toNumber :: forall s. Long s -> Number
