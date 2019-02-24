@@ -113,7 +113,7 @@ longSpec = describe "Long" do
     traverse_ (\f -> f (Internal.signedLongFromInt 2) zero `shouldEqual` zero)
       [ div, Internal.quot, mod, Internal.rem ]
 
-checkNumber :: forall s. (SInfo s) => SignProxy s -> Number -> Aff Unit
+checkNumber :: forall s. SInfo s => Bounded (Long s) => SignProxy s -> Number -> Aff Unit
 checkNumber _ n =
   (Internal.toNumber <$> (Internal.fromNumber n :: Maybe (Long s))) `shouldEqual` Just n
 

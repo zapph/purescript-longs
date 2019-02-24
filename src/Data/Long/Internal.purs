@@ -5,10 +5,6 @@ module Data.Long.Internal
        , Unsigned
        , class SInfo
        , ffiSignedness
-       , ffiTop
-       , ffiBottom
-       , ffiZero
-       , ffiOne
        , bottomIntL
        , topIntL
        , SignProxy(..)
@@ -57,31 +53,16 @@ data SignProxy (s :: Signedness) = SignProxy
 
 class SInfo (s :: Signedness) where
   ffiSignedness :: SignProxy s -> FFI.IsUnsigned
-  ffiTop :: SignProxy s -> FFI.Long
-  ffiBottom :: SignProxy s -> FFI.Long
-  ffiZero :: SignProxy s -> FFI.Long
-  ffiOne :: SignProxy s -> FFI.Long
-
   bottomIntL :: SignProxy s -> FFI.Long
   topIntL :: SignProxy s -> FFI.Long
 
 instance infoSigned :: SInfo Signed where
   ffiSignedness _ = (FFI.IsUnsigned false)
-  ffiTop _ = FFI.maxValue
-  ffiBottom _ = FFI.minValue
-  ffiZero _ = FFI.zero
-  ffiOne _ = FFI.one
-
   bottomIntL p = runFn2 FFI.fromInt bottom (FFI.IsUnsigned false)
   topIntL p = runFn2 FFI.fromInt top (FFI.IsUnsigned false)
 
 instance infoUnsigned :: SInfo Unsigned where
   ffiSignedness _ = (FFI.IsUnsigned true)
-  ffiTop _ = FFI.maxUnsignedValue
-  ffiBottom _ = FFI.uzero
-  ffiZero _ = FFI.uzero
-  ffiOne _ = FFI.uone
-
   bottomIntL _ = FFI.uzero
   topIntL _ = runFn2 FFI.fromInt top (FFI.IsUnsigned true)
 
@@ -99,22 +80,36 @@ instance ordLong :: Ord (Long s) where
     x | x > 0 -> GT
     _ -> LT
 
-instance boundedLong :: SInfo s => Bounded (Long s) where
-  top = Long $ ffiTop (SignProxy :: SignProxy s)
-  bottom = Long $ ffiBottom (SignProxy :: SignProxy s)
+instance boundedLongSigned :: Bounded (Long Signed) where
+  top = Long $ FFI.maxValue
+  bottom = Long $ FFI.minValue
 
-instance semiringLong :: SInfo s => Semiring (Long s) where
+instance boundedLongUnsigned :: Bounded (Long Unsigned) where
+  top = Long $ FFI.maxUnsignedValue
+  bottom = Long $ FFI.uzero
+
+instance semiringLongSigned :: Semiring (Long Signed) where
   add (Long l1) (Long l2) = Long $ FFI.add l1 l2
-  zero = Long $ ffiZero (SignProxy :: SignProxy s)
+  zero = Long $ FFI.zero
   mul (Long l1) (Long l2) = Long $ FFI.multiply l1 l2
-  one = Long $ ffiOne (SignProxy :: SignProxy s)
+  one = Long $ FFI.one
 
-instance ringLong :: SInfo s => Ring (Long s) where
+instance semiringLongUnsigned :: Semiring (Long Unsigned) where
+  add (Long l1) (Long l2) = Long $ FFI.add l1 l2
+  zero = Long $ FFI.uzero
+  mul (Long l1) (Long l2) = Long $ FFI.multiply l1 l2
+  one = Long $ FFI.uone
+
+instance ringLongSigned :: Ring (Long Signed) where
   sub (Long l1) (Long l2) = Long $ FFI.subtract l1 l2
 
-instance commutativeRingLong :: SInfo s => CommutativeRing (Long s)
+instance ringLongUnsigned :: Ring (Long Unsigned) where
+  sub (Long l1) (Long l2) = Long $ FFI.subtract l1 l2
 
-instance euclideanRingLong :: SInfo s => EuclideanRing (Long s) where
+instance commutativeRingLongSigned :: CommutativeRing (Long Signed)
+instance commutativeRingLongUnsigned :: CommutativeRing (Long Unsigned)
+
+instance euclideanRingLongSigned :: EuclideanRing (Long Signed) where
   degree = Int.floor <<< toNumber <<< abs
   div l1l@(Long l1) l2l@(Long l2)
     | FFI.isZero l2 = zero
@@ -127,6 +122,11 @@ instance euclideanRingLong :: SInfo s => EuclideanRing (Long s) where
     | otherwise =
       let Long l2' = abs l2l
       in Long $ ((l1 `FFI.modulo` l2') `FFI.add` l2') `FFI.modulo` l2'
+
+instance euclideanRingLongUnsigned :: EuclideanRing (Long Unsigned) where
+  degree = Int.floor <<< toNumber <<< abs
+  div = quot
+  mod = rem
 
 instance arbitraryLong :: SInfo s => Arbitrary (Long s) where
   arbitrary = fromLowHighBits <$> arbitrary <*> arbitrary
@@ -147,7 +147,7 @@ unsafeFromInt i = Long $ runFn2 FFI.fromInt i (ffiSignedness (SignProxy :: SignP
 fromLowHighBits :: forall s. SInfo s => Int -> Int -> Long s
 fromLowHighBits l h = Long $ runFn3 FFI.fromBits l h (ffiSignedness (SignProxy :: SignProxy s))
 
-fromNumber :: forall s. SInfo s => Number -> Maybe (Long s)
+fromNumber :: forall s. SInfo s => Bounded (Long s) => Number -> Maybe (Long s)
 fromNumber n =
   if isValidNumber
   then Just $ Long $ runFn2 FFI.fromNumber n (ffiSignedness p)
@@ -209,12 +209,12 @@ positive (Long l) = FFI.isPositive l
 negative :: forall s. Long s -> Boolean
 negative (Long l) = FFI.isNegative l
 
-quot :: forall s. (SInfo s) => Long s -> Long s -> Long s
+quot :: forall s. Semiring (Long s) => Long s -> Long s -> Long s
 quot (Long x) (Long y)
   | FFI.isZero y = zero
   | otherwise = Long $ x `FFI.divide` y
 
-rem :: forall s. (SInfo s) => Long s -> Long s -> Long s
+rem :: forall s. Semiring (Long s) => Long s -> Long s -> Long s
 rem (Long x) (Long y)
   | FFI.isZero y = zero
   | otherwise = Long $ x `FFI.modulo` y
@@ -227,14 +227,12 @@ signedProxy = SignProxy
 unsignedProxy :: SignProxy Unsigned
 unsignedProxy = SignProxy
 
-longTopValueN :: forall s. SInfo s => SignProxy s -> Number
-longTopValueN _ = toNumber (top :: Long s)
-
-longBottomValueN :: forall s. SInfo s => SignProxy s -> Number
-longBottomValueN _ = toNumber (bottom :: Long s)
-
-isNumberInLongRange :: forall s. SInfo s => SignProxy s -> Number -> Boolean
-isNumberInLongRange p n = longBottomValueN p <= n && n <= longTopValueN p
+isNumberInLongRange :: forall s. Bounded (Long s) => SignProxy s -> Number -> Boolean
+isNumberInLongRange p n =
+  longBottomValueN <= n && n <= longTopValueN
+  where
+    longBottomValueN = toNumber (bottom :: Long s)
+    longTopValueN = toNumber (top :: Long s)
 
 foreign import numberBitsToInt :: Number -> Int
 
