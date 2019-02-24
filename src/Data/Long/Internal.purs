@@ -116,17 +116,12 @@ instance commutativeRingLongUnsigned :: CommutativeRing (Long Unsigned)
 
 instance euclideanRingLongSigned :: EuclideanRing (Long Signed) where
   degree = Int.floor <<< toNumber <<< abs
-  div l1l@(Long l1) l2l@(Long l2)
-    | FFI.isZero l2 = zero
-    | otherwise =
-      let (Long m) = mod l1l l2l
-      in Long $ (l1 `FFI.subtract` m) `FFI.divide` l2
+  div l1 l2 =
+    (l1 - (l1 `mod` l2)) `quot` l2
 
-  mod (Long l1) l2l@(Long l2)
-    | FFI.isZero l2 = zero
-    | otherwise =
-      let Long l2' = abs l2l
-      in Long $ ((l1 `FFI.modulo` l2') `FFI.add` l2') `FFI.modulo` l2'
+  mod l1 l2  =
+   let l2' = abs l2
+   in ((l1 `rem` l2') + l2') `rem` l2'
 
 instance euclideanRingLongUnsigned :: EuclideanRing (Long Unsigned) where
   degree = Int.floor <<< toNumber <<< abs
