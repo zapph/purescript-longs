@@ -97,11 +97,16 @@ longSpec = describe "Long" do
       , 20000000000000000000.0
       ]
 
-
   it "should determine odd/even" do
     quickCheck \(l :: Long Signed) -> (Internal.parity l == Even) == (l `mod` two == zero)
     quickCheck \(l :: Long Unsigned) -> (Internal.parity l == Even) == (l `mod` two == zero)
 
+  it "should always have positive mods" do
+    quickCheck \(l1 :: Long Signed) l2 -> Internal.positive $ l1 `mod` l2
+
+  it "should div, quot, mod, rem by 0 be 0" do
+    traverse_ (\f -> f (Internal.signedLongFromInt 2) zero `shouldEqual` zero)
+      [ div, Internal.quot, mod, Internal.rem ]
 
 checkNumber :: forall s. (SInfo s) => SignProxy s -> Number -> Aff Unit
 checkNumber _ n =

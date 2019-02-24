@@ -26,6 +26,10 @@ module Data.Long.Internal
        , parity
        , even
        , odd
+       , positive
+       , negative
+       , quot
+       , rem
          -- Utils
        , numberBitsToInt
        ) where
@@ -110,8 +114,17 @@ instance commutativeRingLong :: SInfo s => CommutativeRing (Long s)
 
 instance euclideanRingLong :: SInfo s => EuclideanRing (Long s) where
   degree = Int.floor <<< toNumber <<< abs
-  div (Long l1) (Long l2) = Long $ FFI.divide l1 l2
-  mod (Long l1) l2l@(Long l2) = Long $ FFI.modulo l1 l2
+  div l1l@(Long l1) l2l@(Long l2)
+    | FFI.isZero l2 = zero
+    | otherwise =
+      let (Long m) = mod l1l l2l
+      in Long $ (l1 `FFI.subtract` m) `FFI.divide` l2
+
+  mod (Long l1) l2l@(Long l2)
+    | FFI.isZero l2 = zero
+    | otherwise =
+      let Long l2' = abs l2l
+      in Long $ ((l1 `FFI.modulo` l2') `FFI.add` l2') `FFI.modulo` l2'
 
 instance arbitraryLong :: SInfo s => Arbitrary (Long s) where
   arbitrary = fromLowHigh <$> arbitrary <*> arbitrary
@@ -181,6 +194,22 @@ even (Long l) = FFI.isEven l
 
 odd :: forall s. Long s -> Boolean
 odd = not <<< even
+
+positive :: forall s. Long s -> Boolean
+positive (Long l) = FFI.isPositive l
+
+negative :: forall s. Long s -> Boolean
+negative (Long l) = FFI.isNegative l
+
+quot :: forall s. (SInfo s) => Long s -> Long s -> Long s
+quot (Long x) (Long y)
+  | FFI.isZero y = zero
+  | otherwise = Long $ x `FFI.divide` y
+
+rem :: forall s. (SInfo s) => Long s -> Long s -> Long s
+rem (Long x) (Long y)
+  | FFI.isZero y = zero
+  | otherwise = Long $ x `FFI.modulo` y
 
 -- Utils
 

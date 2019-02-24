@@ -10,6 +10,8 @@ module Data.Long
        , parity
        , even
        , odd
+       , quot
+       , rem
        ) where
 
 import Data.Int (Parity, Radix)
@@ -61,3 +63,11 @@ even = Internal.even
 --| Returns whether a `Long` is an odd number.
 odd :: Long -> Boolean
 odd = Internal.odd
+
+--| The quot function provides truncating integer division (see the documentation for the EuclideanRing class). It is identical to div in the EuclideanRing Long instance if the dividend is positive, but will be slightly different if the dividend is negative.
+quot :: Long -> Long -> Long
+quot = Internal.quot
+
+--| The rem function provides the remainder after truncating integer division (see the documentation for the EuclideanRing class). It is identical to mod in the EuclideanRing Long instance if the dividend is positive, but will be slightly different if the dividend is negative
+rem :: Long -> Long -> Long
+rem = Internal.rem
