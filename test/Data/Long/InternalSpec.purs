@@ -43,6 +43,11 @@ longSpec = describe "Long" do
     checkRing prxUnsignedLong
     checkCommutativeRing prxUnsignedLong
 
+  it "should be built from high and low bits" do
+    quickCheck \high low ->
+      let l = Internal.fromLowHighBits low high :: Long Signed
+      in Internal.highBits l == high && Internal.lowBits l == low
+
   it "should convert ints" $ do
     quickCheck \i -> Internal.toInt (Internal.signedLongFromInt i) == Just i
     quickCheck \i' ->

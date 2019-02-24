@@ -15,10 +15,12 @@ module Data.Long.Internal
        , signedLongFromInt
        , unsignedLongFromInt
        , unsafeFromInt
-       , fromLowHigh
+       , fromLowHighBits
        , fromNumber
        , fromString
        , fromStringAs
+       , highBits
+       , lowBits
        , toInt
        , toString
        , toStringAs
@@ -127,7 +129,7 @@ instance euclideanRingLong :: SInfo s => EuclideanRing (Long s) where
       in Long $ ((l1 `FFI.modulo` l2') `FFI.add` l2') `FFI.modulo` l2'
 
 instance arbitraryLong :: SInfo s => Arbitrary (Long s) where
-  arbitrary = fromLowHigh <$> arbitrary <*> arbitrary
+  arbitrary = fromLowHighBits <$> arbitrary <*> arbitrary
 
 -- Constructors
 
@@ -142,8 +144,8 @@ unsignedLongFromInt i
 unsafeFromInt :: forall s. SInfo s => Int -> Long s
 unsafeFromInt i = Long $ runFn2 FFI.fromInt i (ffiSignedness (SignProxy :: SignProxy s))
 
-fromLowHigh :: forall s. SInfo s => Int -> Int -> Long s
-fromLowHigh l h = Long $ runFn3 FFI.fromBits l h (ffiSignedness (SignProxy :: SignProxy s))
+fromLowHighBits :: forall s. SInfo s => Int -> Int -> Long s
+fromLowHighBits l h = Long $ runFn3 FFI.fromBits l h (ffiSignedness (SignProxy :: SignProxy s))
 
 fromNumber :: forall s. SInfo s => Number -> Maybe (Long s)
 fromNumber n =
@@ -161,6 +163,12 @@ fromString = fromStringAs decimal
 fromStringAs :: forall s. SInfo s => Radix -> String -> Maybe (Long s)
 fromStringAs radix s =
   Long <$> safeReadLong s (ffiSignedness (SignProxy :: SignProxy s)) radix
+
+highBits :: forall s. Long s -> Int
+highBits (Long l) = numberBitsToInt $ FFI.getHighBits l
+
+lowBits :: forall s. Long s -> Int
+lowBits (Long l) = numberBitsToInt $ FFI.getLowBits l
 
 toInt :: forall s. SInfo s => Long s -> Maybe Int
 toInt l'@(Long l) =
