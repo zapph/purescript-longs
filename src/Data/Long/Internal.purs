@@ -5,8 +5,7 @@ module Data.Long.Internal
        , Unsigned
        , class SInfo
        , ffiSignedness
-       , bottomIntL
-       , topIntL
+       , toInt
        , SignProxy(..)
        , signedLongFromInt
        , unsignedLongFromInt
@@ -17,7 +16,6 @@ module Data.Long.Internal
        , fromStringAs
        , highBits
        , lowBits
-       , toInt
        , toString
        , toStringAs
        , toNumber
@@ -53,18 +51,25 @@ data SignProxy (s :: Signedness) = SignProxy
 
 class SInfo (s :: Signedness) where
   ffiSignedness :: SignProxy s -> FFI.IsUnsigned
-  bottomIntL :: SignProxy s -> FFI.Long
-  topIntL :: SignProxy s -> FFI.Long
+  toInt :: Long s -> Maybe Int
 
 instance infoSigned :: SInfo Signed where
   ffiSignedness _ = (FFI.IsUnsigned false)
-  bottomIntL p = runFn2 FFI.fromInt bottom (FFI.IsUnsigned false)
-  topIntL p = runFn2 FFI.fromInt top (FFI.IsUnsigned false)
+  toInt l =
+    let low = lowBits l
+        high = highBits l
+    in if (high == 0 && low >= 0) || (high == -1 && low < 0)
+       then Just low
+       else Nothing
 
 instance infoUnsigned :: SInfo Unsigned where
   ffiSignedness _ = (FFI.IsUnsigned true)
-  bottomIntL _ = FFI.uzero
-  topIntL _ = runFn2 FFI.fromInt top (FFI.IsUnsigned true)
+  toInt l =
+    let low = lowBits l
+        high = highBits l
+    in if high == 0 && low > 0
+       then Just low
+       else Nothing
 
 newtype Long (s :: Signedness) = Long FFI.Long
 
@@ -169,18 +174,6 @@ highBits (Long l) = numberBitsToInt $ FFI.getHighBits l
 
 lowBits :: forall s. Long s -> Int
 lowBits (Long l) = numberBitsToInt $ FFI.getLowBits l
-
-toInt :: forall s. SInfo s => Long s -> Maybe Int
-toInt l'@(Long l) =
-  if bottomL <= l' && l' <= topL
-  then Just $ FFI.toInt l
-  else Nothing
-  where
-    p :: SignProxy s
-    p = SignProxy
-
-    bottomL = Long $ bottomIntL p
-    topL = Long $ topIntL p
 
 toString :: forall s. Long s -> String
 toString = toStringAs decimal
