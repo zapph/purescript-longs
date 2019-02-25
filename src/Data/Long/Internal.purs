@@ -26,7 +26,15 @@ module Data.Long.Internal
        , negative
        , quot
        , rem
-         -- Utils
+       -- Bitwise Operations
+       , and
+       , or
+       , xor
+       , shl
+       , shr
+       , zshr
+       , complement
+       -- Utils
        , numberBitsToInt
        ) where
 
@@ -206,6 +214,29 @@ rem :: forall s. Semiring (Long s) => Long s -> Long s -> Long s
 rem (Long x) (Long y)
   | FFI.isZero y = zero
   | otherwise = Long $ x `FFI.modulo` y
+
+-- Bitwise operations
+
+and :: forall s. Long s -> Long s -> Long s
+and (Long x) (Long y) = Long $ FFI.and x y
+
+or :: forall s. Long s -> Long s -> Long s
+or (Long x) (Long y) = Long $ FFI.or x y
+
+xor :: forall s. Long s -> Long s -> Long s
+xor (Long x) (Long y) = Long $ FFI.xor x y
+
+shl :: forall s. Long s -> Long s -> Long s
+shl (Long x) (Long y) = Long $ FFI.shiftLeft x y
+
+shr :: forall s. Long s -> Long s -> Long s
+shr (Long x) (Long y) = Long $ FFI.shiftRight x y
+
+zshr :: forall s. Long s -> Long s -> Long s
+zshr (Long x) (Long y) = Long $ FFI.shiftRightUnsigned x y
+
+complement :: forall s. Long s -> Long s
+complement (Long x) = Long $ FFI.not x
 
 -- Utils
 
