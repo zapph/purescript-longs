@@ -14,6 +14,7 @@ module Data.Long.Unsigned
        , odd
        , quot
        , rem
+       , toSigned
        ) where
 
 import Data.Int (Parity, Radix)
@@ -81,3 +82,7 @@ quot = Internal.quot
 --| The rem function provides the remainder after truncating integer division (see the documentation for the EuclideanRing class). It is identical to mod in the EuclideanRing Long instance if the dividend is positive, but will be slightly different if the dividend is negative
 rem :: Long -> Long -> Long
 rem = Internal.rem
+
+--| Converts to a signed long by reading the bits as a 2's complement 64 bit signed integer.
+toSigned :: Long -> Internal.Long Internal.Signed
+toSigned = Internal.unsignedToSigned

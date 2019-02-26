@@ -34,6 +34,9 @@ module Data.Long.Internal
        , shr
        , zshr
        , complement
+       -- Conversions
+       , signedToUnsigned
+       , unsignedToSigned
        -- Utils
        , numberBitsToInt
        ) where
@@ -237,6 +240,14 @@ zshr (Long x) (Long y) = Long $ FFI.shiftRightUnsigned x y
 
 complement :: forall s. Long s -> Long s
 complement (Long x) = Long $ FFI.not x
+
+-- Conversions
+
+signedToUnsigned :: Long Signed -> Long Unsigned
+signedToUnsigned (Long x) = Long $ FFI.toUnsigned x
+
+unsignedToSigned :: Long Unsigned -> Long Signed
+unsignedToSigned (Long x) = Long $ FFI.toSigned x
 
 -- Utils
 
