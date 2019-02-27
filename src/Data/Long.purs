@@ -2,6 +2,7 @@ module Data.Long
        ( Long
        , fromLowHighBits
        , fromInt
+       , fromNumber
        , fromString
        , fromStringAs
        , lowBits
@@ -26,6 +27,12 @@ type Long = Internal.Long Internal.Signed
 -- | Creates a `Long` from an `Int` value
 fromInt :: Int -> Long
 fromInt = Internal.signedLongFromInt
+
+-- | Creates an `Long` from a `Number` value. The number must already be an
+-- | integer and fall within the valid range of values for the `Long` type
+-- | otherwise `Nothing` is returned.
+fromNumber :: Number -> Maybe Long
+fromNumber = Internal.fromNumber
 
 -- | Creates a signed `Long` from low and high bits respresented as `Int`
 fromLowHighBits :: Int -> Int -> Long
