@@ -68,7 +68,8 @@ toString = Internal.toString
 toStringAs :: Radix -> Long -> String
 toStringAs = Internal.toStringAs
 
--- | Converts a `Long` to a `Number`, possibly losing precision.
+-- | Creates a `Number` value from a `Long`. Values not within
+-- | `Number.MIN_SAFE_INTEGER` and `Number.MAX_SAFE_INTEGER` will lose precision.
 toNumber :: Long -> Number
 toNumber = Internal.toNumber
 

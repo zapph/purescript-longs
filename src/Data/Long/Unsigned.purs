@@ -8,6 +8,7 @@ module Data.Long.Unsigned
        , lowBits
        , highBits
        , toInt
+       , toNumber
        , toString
        , toStringAs
        , parity
@@ -60,6 +61,11 @@ highBits = Internal.highBits
 toInt :: Long -> Maybe Int
 toInt = Internal.toInt
 
+-- | Creates a `Number` value from a `Long`. Values greater than
+-- | `Number.MAX_SAFE_INTEGER` will lose precision.
+toNumber :: Long -> Number
+toNumber = Internal.toNumber
+
 -- | Like `show`, but omits the `ul` suffix.
 toString :: Long -> String
 toString = Internal.toString
@@ -67,10 +73,6 @@ toString = Internal.toString
 -- | Like `toStringAs`, but the integer can be specified in a different base.
 toStringAs :: Radix -> Long -> String
 toStringAs = Internal.toStringAs
-
--- | Converts a `Long` to a `Number`, possibly losing precision.
-toNumber :: Long -> Number
-toNumber = Internal.toNumber
 
 -- | Returns whether a `Long` is `Even` or `Odd`.
 parity :: Long -> Parity
