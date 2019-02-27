@@ -8,6 +8,7 @@ module Data.Long
        , lowBits
        , highBits
        , toInt
+       , toNumber
        , toString
        , toStringAs
        , parity
