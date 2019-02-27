@@ -1,5 +1,5 @@
 module Data.Long
-       ( Long
+       ( module R
        , fromLowHighBits
        , fromInt
        , fromNumber
@@ -19,10 +19,10 @@ module Data.Long
        ) where
 
 import Data.Int (Parity, Radix)
+import Data.Long.Internal (Long, Long', kind Signedness, Signed, Unsigned) as R
+import Data.Long.Internal (Long, ULong)
 import Data.Long.Internal as Internal
 import Data.Maybe (Maybe)
-
-type Long = Internal.Long Internal.Signed
 
 -- | Creates a `Long` from an `Int` value
 fromInt :: Int -> Long
@@ -100,5 +100,5 @@ rem :: Long -> Long -> Long
 rem = Internal.rem
 
 -- | Converts to an unsigned long by reading the bits as a 64 bit unsigned integer.
-toUnsigned :: Long -> Internal.Long Internal.Unsigned
+toUnsigned :: Long -> ULong
 toUnsigned = Internal.signedToUnsigned
