@@ -53,7 +53,7 @@ import Data.Maybe (Maybe(..))
 import Data.Nullable (Nullable)
 import Data.Nullable as Nullable
 import Data.Ord (abs)
-import Test.QuickCheck (class Arbitrary, arbitrary)
+import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 
 foreign import kind Signedness
 
