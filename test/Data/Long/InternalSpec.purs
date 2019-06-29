@@ -14,11 +14,10 @@ import Data.Traversable (traverse_)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Global as Number
-import Test.QuickCheck (class Arbitrary, arbitrary)
+import Test.QuickCheck (class Arbitrary, class Testable, arbitrary, quickCheck)
 import Test.QuickCheck.Laws.Data (checkCommutativeRing, checkEq, checkEuclideanRing, checkOrd, checkRing, checkSemiring)
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldEqual, shouldSatisfy)
-import Test.Spec.QuickCheck (quickCheck)
 import Type.Proxy (Proxy(..))
 
 internalSpec :: Spec Unit
@@ -44,13 +43,13 @@ longSpec = describe "Long" do
     checkCommutativeRing prxUnsignedLong
 
   it "should be built from high and low bits" do
-    quickCheck \high low ->
+    quickCheck' \high low ->
       let l = Internal.fromLowHighBits low high :: Long
       in Internal.highBits l == high && Internal.lowBits l == low
 
   it "should convert ints" $ do
-    quickCheck \i -> Internal.toInt (Internal.signedLongFromInt i) == Just i
-    quickCheck \i' ->
+    quickCheck' \i -> Internal.toInt (Internal.signedLongFromInt i) == Just i
+    quickCheck' \i' ->
       let i = abs i'
           l = Internal.unsignedLongFromInt (abs i)
       in (l >>= Internal.toInt) == Just i
@@ -59,10 +58,10 @@ longSpec = describe "Long" do
     Internal.unsignedLongFromInt (-1) `shouldSatisfy` isNothing
 
   it "should convert to strings" $ do
-    quickCheck \(Radix' r) l ->
+    quickCheck' \(Radix' r) l ->
       readSigned r (Internal.toStringAs r l) == Just l
 
-    quickCheck \(Radix' r) l ->
+    quickCheck' \(Radix' r) l ->
       readUnsigned r (Internal.toStringAs r l) == Just l
 
   it "should convert numbers" $ do
@@ -103,11 +102,11 @@ longSpec = describe "Long" do
       ]
 
   it "should determine odd/even" do
-    quickCheck \(l :: Long) -> (Internal.parity l == Even) == (l `mod` two == zero)
-    quickCheck \(l :: ULong) -> (Internal.parity l == Even) == (l `mod` two == zero)
+    quickCheck' \(l :: Long) -> (Internal.parity l == Even) == (l `mod` two == zero)
+    quickCheck' \(l :: ULong) -> (Internal.parity l == Even) == (l `mod` two == zero)
 
   it "should always have positive mods" do
-    quickCheck \(l1 :: Long) l2 -> Internal.positive $ l1 `mod` l2
+    quickCheck' \(l1 :: Long) l2 -> Internal.positive $ l1 `mod` l2
 
   it "should div, quot, mod, rem by 0 be 0" do
     traverse_ (\f -> f (Internal.signedLongFromInt 2) zero `shouldEqual` zero)
@@ -221,3 +220,6 @@ instance arbitraryRadix' :: Arbitrary Radix' where
     case radix i of
       Just r -> pure (Radix' r)
       Nothing -> arbitrary
+
+quickCheck' :: forall a. Testable a => a -> Aff Unit
+quickCheck' = liftEffect <<< quickCheck

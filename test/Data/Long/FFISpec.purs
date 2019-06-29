@@ -16,8 +16,7 @@ import Effect.Uncurried (runEffectFn3)
 import Foreign (unsafeToForeign)
 import Test.Assert (assert)
 import Test.Spec (Spec, describe, it)
-import Test.Spec.Assertions (shouldEqual, shouldSatisfy)
-import Test.Spec.Assertions.Aff (expectError)
+import Test.Spec.Assertions (expectError, shouldEqual, shouldSatisfy)
 
 ffiSpec :: Spec Unit
 ffiSpec = describe "FFI" do

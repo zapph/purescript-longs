@@ -12,7 +12,7 @@
     "url": "https://github.com/zapph/purescript-longs.git"
   },
   "dependencies": {
-    "purescript-prelude": "^4.1.0",
+    "purescript-prelude": "^4.1.1",
     "purescript-console": "^4.2.0",
     "purescript-effect": "^2.0.1",
     "purescript-functions": "^4.0.0",
@@ -24,9 +24,8 @@
     "purescript-psci-support": "^4.0.0",
     "purescript-assert": "^4.1.0",
     "purescript-debug": "^4.0.0",
-    "purescript-spec": "^3.1.0",
-    "purescript-quickcheck": "^5.0.0",
-    "purescript-quickcheck-laws": "^4.0.0",
-    "purescript-spec-quickcheck": "^3.1.0"
+    "purescript-spec": "^4.0.0",
+    "purescript-quickcheck": "^6.1.0",
+    "purescript-quickcheck-laws": "^5.0.1"
   }
 }
